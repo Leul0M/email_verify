@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Raccoon - Domain Search & Verification</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <img src="raccoon_logo.png" alt="The Raccoon Logo" class="logo-img">
+            <span>The Raccoon</span>
+        </div>
+        <button id="theme-toggle" aria-label="Toggle theme">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+    </header>
+
+    <main class="app-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1>The Raccoon</h1>
+            <p class="subtitle">Search and verify MX, SPF, and DMARC DNS records with The Raccoon.</p>
+        </section>
+
+        <!-- Search Form Section -->
+        <section class="search-section card">
+            <form id="verify-form" onsubmit="handleFormSubmit(event)">
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-magnifying-glass input-icon"></i>
+                    <input type="text" id="domain-input" placeholder="Search domain (e.g. google.com)" required autocomplete="off">
+                </div>
+                <button type="submit" id="verify-btn">
+                    <span>Raccoon Search</span>
+                    <i class="fa-solid fa-arrow-right button-icon"></i>
+                </button>
+            </form>
+
+            <div class="quick-chips">
+                <span class="chips-label">Popular searches:</span>
+                <button type="button" class="chip" onclick="fillAndSearch('google.com')">google.com</button>
+                <button type="button" class="chip" onclick="fillAndSearch('github.com')">github.com</button>
+                <button type="button" class="chip" onclick="fillAndSearch('cloudflare.com')">cloudflare.com</button>
+                <button type="button" class="chip" onclick="fillAndSearch('microsoft.com')">microsoft.com</button>
+            </div>
+        </section>
+
+        <!-- Explainer Feature Cards -->
+        <section class="explainer-section">
+            <h2 class="section-title">What The Raccoon Searches</h2>
+            <div class="explainer-grid">
+                <div class="explainer-card">
+                    <div class="explainer-icon-wrapper mx-theme">
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <h3>MX Records</h3>
+                    <p>Raccoon checks for mail exchange servers that handle incoming email for the domain.</p>
+                </div>
+
+                <div class="explainer-card">
+                    <div class="explainer-icon-wrapper spf-theme">
+                        <i class="fa-solid fa-shield"></i>
+                    </div>
+                    <h3>SPF Records</h3>
+                    <p>Raccoon checks Sender Policy Framework rules to verify authorized email senders.</p>
+                </div>
+
+                <div class="explainer-card">
+                    <div class="explainer-icon-wrapper dmarc-theme">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3>DMARC Records</h3>
+                    <p>Raccoon checks DMARC policies that enforce anti-phishing protection.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scanning Progress & Clean Animation -->
+        <section id="loader" class="loader-container card hidden">
+            <div class="scanner-header">
+                <img src="raccoon_logo.png" alt="Raccoon Logo" class="scanner-logo">
+                <h3 id="scanner-title">Raccoon is Searching DNS...</h3>
+            </div>
+            
+            <div class="scanner-steps">
+                <div class="step-item" id="step-mx">
+                    <i class="fa-solid fa-circle-notch fa-spin step-icon"></i>
+                    <span>Raccoon is checking MX records...</span>
+                </div>
+                <div class="step-item" id="step-spf">
+                    <i class="fa-solid fa-circle-notch fa-spin step-icon"></i>
+                    <span>Raccoon is inspecting SPF policy...</span>
+                </div>
+                <div class="step-item" id="step-dmarc">
+                    <i class="fa-solid fa-circle-notch fa-spin step-icon"></i>
+                    <span>Raccoon is verifying DMARC enforcement...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error Card -->
+        <section id="error-card" class="error-container card hidden">
+            <i class="fa-solid fa-circle-exclamation error-icon"></i>
+            <div>
+                <h4>Search Failed</h4>
+                <p id="error-message">The Raccoon could not complete the domain search. Please check the domain name.</p>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results-card" class="results-container card hidden">
+            <header class="results-header">
+                <div class="domain-title-group">
+                    <i class="fa-solid fa-globe domain-header-icon"></i>
+                    <span id="result-domain" class="domain-title">google.com</span>
+                </div>
+                <div id="overall-status-badge" class="status-badge">
+                    <i class="fa-solid" id="overall-status-icon"></i>
+                    <span id="overall-status-text">Raccoon Verified</span>
+                </div>
+            </header>
+
+            <div class="status-list">
+                <!-- MX Record Status -->
+                <div class="status-row-card" id="mx-card">
+                    <div class="row-header">
+                        <div class="row-icon-title">
+                            <i class="fa-solid" id="mx-icon"></i>
+                            <div>
+                                <h3>MX Record</h3>
+                                <p id="mx-desc">Checking mail server record...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPF Record Status -->
+                <div class="status-row-card" id="spf-card">
+                    <div class="row-header">
+                        <div class="row-icon-title">
+                            <i class="fa-solid" id="spf-icon"></i>
+                            <div>
+                                <h3>SPF Record</h3>
+                                <p id="spf-desc">Checking Sender Policy Framework...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="record-block hidden" id="spf-record-block">
+                        <div class="code-box">
+                            <code id="spf-raw">None</code>
+                        </div>
+                    </div>
+                    <div class="tip-box hidden" id="spf-tip-block">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span><strong>Raccoon Tip:</strong> Add a TXT record starting with <code>v=spf1</code> to authorize sending servers.</span>
+                    </div>
+                </div>
+
+                <!-- DMARC Record Status -->
+                <div class="status-row-card" id="dmarc-card">
+                    <div class="row-header">
+                        <div class="row-icon-title">
+                            <i class="fa-solid" id="dmarc-icon"></i>
+                            <div>
+                                <h3>DMARC Record</h3>
+                                <p id="dmarc-desc">Checking Domain-based Message Authentication...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="record-block hidden" id="dmarc-record-block">
+                        <div class="code-box">
+                            <code id="dmarc-raw">None</code>
+                        </div>
+                    </div>
+                    <div class="tip-box hidden" id="dmarc-tip-block">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span><strong>Raccoon Tip:</strong> Create a TXT record at <code>_dmarc.yourdomain.com</code> starting with <code>v=DMARC1</code> to enforce protection.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
